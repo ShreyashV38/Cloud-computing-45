@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="University Notice Board — View official announcements and submit feedback" />
+  <title>University Notice Board</title>
+
+  <!-- Google Fonts — Inter for clean modern typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===== Top Navigation ===== -->
+  <header class="top-bar">
+    <div class="top-bar__brand">
+      <span class="top-bar__icon">🎓</span>
+      <h1 class="top-bar__title">University Notice Board</h1>
+    </div>
+    <nav class="top-bar__nav">
+      <button class="tab-btn active" data-tab="notices" id="tab-notices">
+        <span class="tab-btn__icon">📋</span> Notices
+      </button>
+      <button class="tab-btn" data-tab="feedback" id="tab-feedback">
+        <span class="tab-btn__icon">💬</span> Feedback
+      </button>
+    </nav>
+  </header>
+
+  <!-- ===== Main Content ===== -->
+  <main class="container">
+
+    <!-- ---------- Notices View ---------- -->
+    <section id="view-notices" class="view active">
+
+      <!-- Admin form to post a new notice -->
+      <div class="card card--form glass">
+        <h2 class="card__heading">Post a New Notice</h2>
+        <form id="notice-form" autocomplete="off">
+          <div class="form-group">
+            <label for="notice-title">Title</label>
+            <input type="text" id="notice-title" placeholder="e.g. Mid-Term Schedule Released" maxlength="255" required />
+          </div>
+          <div class="form-group">
+            <label for="notice-message">Message</label>
+            <textarea id="notice-message" rows="4" placeholder="Write the full announcement here…" maxlength="5000" required></textarea>
+            <span class="char-count" id="notice-msg-count">0 / 5000</span>
+          </div>
+          <div class="form-group">
+            <label for="notice-author">Posted By</label>
+            <input type="text" id="notice-author" placeholder="e.g. Dean of Academics" maxlength="100" required />
+          </div>
+          <button type="submit" class="btn btn--primary" id="btn-post-notice">
+            <span class="btn__label">Publish Notice</span>
+            <span class="btn__spinner hidden"></span>
+          </button>
+          <div id="notice-form-error" class="form-error hidden"></div>
+          <div id="notice-form-success" class="form-success hidden"></div>
+        </form>
+      </div>
+
+      <!-- Notice list -->
+      <div class="card glass">
+        <h2 class="card__heading">Recent Announcements</h2>
+        <div id="notices-list" class="item-list">
+          <div class="skeleton-loader">Loading notices…</div>
+        </div>
+        <div id="notices-pagination" class="pagination hidden"></div>
+      </div>
+    </section>
+
+    <!-- ---------- Feedback View ---------- -->
+    <section id="view-feedback" class="view">
+
+      <!-- Student feedback form -->
+      <div class="card card--form glass">
+        <h2 class="card__heading">Submit Your Feedback</h2>
+        <form id="feedback-form" autocomplete="off">
+          <div class="form-group">
+            <label for="fb-name">Your Name</label>
+            <input type="text" id="fb-name" placeholder="e.g. Priya Sharma" maxlength="100" required />
+          </div>
+          <div class="form-group">
+            <label for="fb-message">Message</label>
+            <textarea id="fb-message" rows="4" placeholder="Share your feedback (at least 3 words)…" maxlength="2000" required></textarea>
+            <span class="char-count" id="fb-msg-count">0 / 2000</span>
+          </div>
+          <button type="submit" class="btn btn--accent" id="btn-post-feedback">
+            <span class="btn__label">Send Feedback</span>
+            <span class="btn__spinner hidden"></span>
+          </button>
+          <div id="feedback-form-error" class="form-error hidden"></div>
+          <div id="feedback-form-success" class="form-success hidden"></div>
+        </form>
+      </div>
+
+      <!-- Feedback list -->
+      <div class="card glass">
+        <h2 class="card__heading">Recent Feedback</h2>
+        <div id="feedback-list" class="item-list">
+          <div class="skeleton-loader">Loading feedback…</div>
+        </div>
+        <div id="feedback-pagination" class="pagination hidden"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <p>&copy; 2026 University Notice Board &mdash; Microservices Demo</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

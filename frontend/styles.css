@@ -1,0 +1,515 @@
+/* ============================================================
+   University Notice Board — Design System & Styles
+   ============================================================
+   Color palette:  Deep navy/indigo dark theme
+   Accents:        Amber/gold for notices · Teal/cyan for feedback
+   Typography:     Inter (Google Fonts)
+   Effects:        Glassmorphism, micro-animations, smooth transitions
+   ============================================================ */
+
+/* ---------- CSS Custom Properties ---------- */
+:root {
+  /* Background */
+  --bg-primary:   #0b0e1a;
+  --bg-secondary: #111528;
+  --bg-card:      rgba(20, 26, 50, 0.65);
+
+  /* Surface / glass */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+
+  /* Text */
+  --text-primary:   #e8ecf4;
+  --text-secondary: #8892a8;
+  --text-muted:     #555e73;
+
+  /* Accent — Notices (amber/gold) */
+  --notice-accent:     #f5a623;
+  --notice-accent-dim: rgba(245, 166, 35, 0.15);
+  --notice-glow:       rgba(245, 166, 35, 0.30);
+
+  /* Accent — Feedback (teal/cyan) */
+  --fb-accent:     #22d3ee;
+  --fb-accent-dim: rgba(34, 211, 238, 0.15);
+  --fb-glow:       rgba(34, 211, 238, 0.30);
+
+  /* Feedback button */
+  --accent-btn:      linear-gradient(135deg, #22d3ee, #06b6d4);
+  --accent-btn-hover: linear-gradient(135deg, #06b6d4, #0891b2);
+
+  /* Primary button */
+  --primary-btn:      linear-gradient(135deg, #f5a623, #e09100);
+  --primary-btn-hover: linear-gradient(135deg, #e09100, #c77d00);
+
+  /* Misc */
+  --radius:   14px;
+  --radius-sm: 8px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Danger */
+  --danger: #f87171;
+
+  /* Success */
+  --success: #4ade80;
+}
+
+/* ---------- Reset / Base ---------- */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.6;
+  overflow-x: hidden;
+
+  /* Subtle background gradient */
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(245, 166, 35, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(34, 211, 238, 0.05) 0%, transparent 60%);
+}
+
+/* ---------- Top Bar ---------- */
+.top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 2rem;
+  background: rgba(11, 14, 26, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.top-bar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.top-bar__icon {
+  font-size: 1.6rem;
+}
+
+.top-bar__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--notice-accent), var(--fb-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.top-bar__nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ---------- Tab Buttons ---------- */
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.3rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tab-btn.active[data-tab="notices"] {
+  background: var(--notice-accent-dim);
+  border-color: var(--notice-accent);
+  color: var(--notice-accent);
+  box-shadow: 0 0 16px var(--notice-glow);
+}
+
+.tab-btn.active[data-tab="feedback"] {
+  background: var(--fb-accent-dim);
+  border-color: var(--fb-accent);
+  color: var(--fb-accent);
+  box-shadow: 0 0 16px var(--fb-glow);
+}
+
+.tab-btn__icon {
+  font-size: 1rem;
+}
+
+/* ---------- Container ---------- */
+.container {
+  flex: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: 2rem auto;
+  padding: 0 1.25rem;
+}
+
+/* ---------- Views ---------- */
+.view {
+  display: none;
+  animation: fadeUp 0.4s ease;
+}
+
+.view.active {
+  display: block;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Glass Card ---------- */
+.card {
+  margin-bottom: 1.75rem;
+  padding: 1.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  transition: border-color var(--transition);
+}
+
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--glass-shadow);
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.13);
+}
+
+.card__heading {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- Form Elements ---------- */
+.form-group {
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: all var(--transition);
+  resize: vertical;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--notice-accent);
+  box-shadow: 0 0 0 3px var(--notice-glow);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Feedback view focus color override */
+#view-feedback .form-group input:focus,
+#view-feedback .form-group textarea:focus {
+  border-color: var(--fb-accent);
+  box-shadow: 0 0 0 3px var(--fb-glow);
+}
+
+.char-count {
+  display: block;
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.6rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  color: #0b0e1a;
+}
+
+.btn--primary {
+  background: var(--primary-btn);
+  box-shadow: 0 4px 16px var(--notice-glow);
+}
+
+.btn--primary:hover {
+  background: var(--primary-btn-hover);
+  box-shadow: 0 6px 24px var(--notice-glow);
+  transform: translateY(-1px);
+}
+
+.btn--accent {
+  background: var(--accent-btn);
+  box-shadow: 0 4px 16px var(--fb-glow);
+}
+
+.btn--accent:hover {
+  background: var(--accent-btn-hover);
+  box-shadow: 0 6px 24px var(--fb-glow);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Spinner inside button */
+.btn__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(11, 14, 26, 0.3);
+  border-top-color: #0b0e1a;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Form messages ---------- */
+.form-error,
+.form-success {
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  font-weight: 500;
+  animation: fadeUp 0.3s ease;
+}
+
+.form-error {
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: var(--danger);
+}
+
+.form-success {
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: var(--success);
+}
+
+/* ---------- Item List ---------- */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.item-card {
+  padding: 1.15rem 1.25rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--glass-border);
+  transition: all var(--transition);
+  animation: fadeUp 0.35s ease;
+}
+
+.item-card:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.14);
+  transform: translateX(4px);
+}
+
+.item-card__title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+  color: var(--text-primary);
+}
+
+.item-card__body {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 0.55rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.item-card__meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.item-card__meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Accent stripe on notice cards */
+.item-card--notice {
+  border-left: 3px solid var(--notice-accent);
+}
+
+.item-card--feedback {
+  border-left: 3px solid var(--fb-accent);
+}
+
+/* ---------- Empty / Skeleton ---------- */
+.skeleton-loader {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.empty-state__icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* ---------- Pagination ---------- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.pagination button {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.pagination button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.pagination button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pagination .page-info {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  min-width: 80px;
+  text-align: center;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--glass-border);
+}
+
+/* ---------- Utility ---------- */
+.hidden {
+  display: none !important;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .top-bar {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .container {
+    padding: 0 0.75rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .tab-btn {
+    padding: 0.45rem 1rem;
+    font-size: 0.82rem;
+  }
+}
