@@ -1,20 +1,21 @@
-# --- Build stage ---
-FROM node:20-alpine AS builder
-WORKDIR /build
+FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Node.js and MySQL Server
+RUN apt-get update && apt-get install -y curl mysql-server
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
+
+WORKDIR /app
+
+# Install dependencies
 COPY package.json ./
 RUN npm install --omit=dev
 
-# --- Production stage ---
-FROM node:20-alpine
-LABEL maintainer="university-noticeboard"
+# Copy app code
+COPY src ./src
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-WORKDIR /app
-
-COPY --from=builder /build/node_modules ./node_modules
-COPY . .
-
-USER appuser
 EXPOSE 3001
-
-CMD ["node", "src/index.js"]
+CMD ["/start.sh"]

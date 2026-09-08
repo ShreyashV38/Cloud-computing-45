@@ -1,21 +1,28 @@
-# --- Build stage ---
-FROM node:20-alpine AS builder
-WORKDIR /build
-COPY package.json ./
-RUN npm install --omit=dev
+FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
 
-# --- Production stage ---
-FROM node:20-alpine
-LABEL maintainer="university-noticeboard"
+# Install Node.js and Nginx
+RUN apt-get update && apt-get install -y curl nginx
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
 
-# Don't run as root
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Setup Nginx
+RUN rm -rf /var/www/html/*
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY frontend/index.html /var/www/html/
+COPY frontend/styles.css /var/www/html/
+COPY frontend/app.js     /var/www/html/
+
 WORKDIR /app
 
-COPY --from=builder /build/node_modules ./node_modules
-COPY . .
+# Install dependencies
+COPY gateway/package.json ./
+RUN npm install --omit=dev
 
-USER appuser
-EXPOSE 3000
+# Copy app code
+COPY gateway/src ./src
+COPY gateway/start.sh /start.sh
+RUN chmod +x /start.sh
 
-CMD ["node", "src/index.js"]
+EXPOSE 3000 80
+CMD ["/start.sh"]

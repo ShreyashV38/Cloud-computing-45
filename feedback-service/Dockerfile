@@ -1,25 +1,23 @@
-# --- Build stage ---
-FROM python:3.12-slim AS builder
+FROM ubuntu:22.04
+ENV DEBIAN_FRONTEND=noninteractive
 
-WORKDIR /build
-COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
-
-# --- Production stage ---
-FROM python:3.12-slim
-LABEL maintainer="university-noticeboard"
-
-# Don't run as root
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+# Install Python and PostgreSQL
+RUN apt-get update && apt-get install -y python3 python3-pip postgresql postgresql-contrib sudo
 
 WORKDIR /app
 
-# Copy installed packages from builder
-COPY --from=builder /install /usr/local
+# Install dependencies
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
 
-COPY . .
+# Copy app code
+COPY app ./app
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
-USER appuser
+# Allow local connections without password for simplicity inside the container
+RUN echo "local all all trust" > /etc/postgresql/14/main/pg_hba.conf
+RUN echo "host all all 127.0.0.1/32 trust" >> /etc/postgresql/14/main/pg_hba.conf
+
 EXPOSE 5000
-
-CMD ["python", "-m", "app.main"]
+CMD ["/start.sh"]
