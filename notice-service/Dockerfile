@@ -1,8 +1,8 @@
 # --- Build stage ---
 FROM node:20-alpine AS builder
 WORKDIR /build
-COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+COPY package.json ./
+RUN npm install --omit=dev
 
 # --- Production stage ---
 FROM node:20-alpine
