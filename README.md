@@ -1,253 +1,106 @@
 # 🎓 University Notice Board
 
 A fully containerized **microservices application** where admins can
-broadcast official notices and students can submit feedback — all running
-with a single `docker compose up`.
+broadcast official notices and students can submit feedback. The project is designed with **single-container deployment readiness**, bundling each service and its corresponding database together into 3 core containers. Each container is managed by a separate Docker Compose file for easy load balancing across multiple VMs.
 
 ---
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                        BROWSER (:8080)                          │
-│                    http://localhost:8080                         │
+│                    http://localhost:8080                        │
 └──────────────────────────┬──────────────────────────────────────┘
                            │  /api/*  (nginx reverse proxy)
                            ▼
               ┌────────────────────────┐
-              │      API Gateway       │  ← only externally
-              │   Node.js + Express    │     exposed service
-              │       (:3000)          │
+              │  Gateway Container     │
+              │ Node Gateway + Nginx   │
+              │  (VM 3 / Gateway)      │
               └─────┬────────────┬─────┘
          /api/notices            /api/feedback
                 │                      │
      ┌──────────▼──────────┐  ┌────────▼──────────┐
-     │   notice-service    │  │  feedback-service  │
-     │  Node.js + Express  │  │  Python + Flask    │
-     │      (:3001)        │  │      (:5000)       │
-     └──────────┬──────────┘  └────────┬───────────┘
-                │                      │
-     ┌──────────▼──────────┐  ┌────────▼───────────┐
-     │     notice-db       │  │    feedback-db      │
-     │     MySQL 8.0       │  │   PostgreSQL 16     │
-     │      (:3306)        │  │      (:5432)        │
-     └─────────────────────┘  └────────────────────-┘
-
-     ◀──── backend network ────▶  (not exposed outside)
+     │  Notice Container   │  │ Feedback Container │
+     │  Node.js + MySQL    │  │Python + PostgreSQL │
+     │  (VM 1 / Notice)    │  │ (VM 2 / Feedback)  │
+     └─────────────────────┘  └────────────────────┘
 ```
 
-**6 containers** on two Docker networks:
-- **frontend** network: `frontend` ↔ `gateway`
-- **backend** network: `gateway` ↔ microservices ↔ databases
-
-Databases and microservices are **never directly accessible** from outside.
+**3 core containers**, each managed by their own compose file to allow seamless deployment across three distinct Virtual Machines (as per assignment requirements):
+- `docker-compose.gateway.yml`: API Gateway + Nginx Frontend
+- `docker-compose.notice.yml`: Notice API + MySQL DB
+- `docker-compose.feedback.yml`: Feedback API + PostgreSQL DB
 
 ---
 
 ## Microservice Justification
 
-### notice-service (Node.js + MySQL)
+### Notice Service (Node.js + MySQL)
 Owns the **Notices bounded context**: creating, validating, storing, and
 paginating official university announcements. It enforces title/message
 length limits, rejects empty submissions, and generates `created_at`
-server-side to prevent timestamp spoofing. This domain is self-contained —
-it has no dependency on student feedback data or any other service.
+server-side.
 
-### feedback-service (Python + Flask + PostgreSQL)
+### Feedback Service (Python + Flask + PostgreSQL)
 Owns the **Feedback bounded context**: accepting, validating, sanitising,
 and paginating student feedback submissions. It trims whitespace, enforces
-character limits, requires a minimum word count to reject gibberish, and
-generates `submitted_at` server-side. This domain is entirely independent —
-it never needs to know whether notices exist.
+character limits, and requires a minimum word count to reject gibberish.
 
 ---
 
-## Quick Start
-
-### Prerequisites
-- [Docker](https://docs.docker.com/get-docker/) & Docker Compose v2+
-- Git (optional, for cloning)
+## Quick Start (Local Deployment)
 
 ### 1. Clone & configure
 
 ```bash
 git clone <your-repo-url>
 cd cloudmidpoint
-
-# Copy the example env and edit with your own secrets
-cp .env.example .env
 ```
 
-### 2. Start everything
+### 2. Start Services Independently
 
+Run these three commands to simulate the 3 VMs locally on your machine:
 ```bash
-docker compose up --build
+docker compose -f docker-compose.notice.yml up --build -d
+docker compose -f docker-compose.feedback.yml up --build -d
+docker compose -f docker-compose.gateway.yml up --build -d
 ```
 
-Wait for all health checks to pass (≈30-60 s on first run), then open:
+Wait for the containers to fully build and the databases to initialize internally (about 1-2 minutes on first run), then open:
 
 > **http://localhost:8080**
 
 ### 3. Stop / clean up
 
 ```bash
-docker compose down        # stop containers
-docker compose down -v     # stop + wipe database volumes
-```
-
----
-
-## API Endpoints
-
-All requests go through the **API Gateway** at `http://localhost:8080/api/`.
-
-### Notices
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET`  | `/api/notices?page=1&limit=10` | List notices (paginated, newest first) |
-| `POST` | `/api/notices` | Create a new notice |
-
-**POST body:**
-```json
-{
-  "title": "Exam Schedule Released",
-  "message": "Mid-term exams will begin on 20 Sep 2026. Check the portal for your hall ticket.",
-  "posted_by": "Dean of Academics"
-}
-```
-
-### Feedback
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET`  | `/api/feedback?page=1&limit=10` | List feedback (paginated, newest first) |
-| `POST` | `/api/feedback` | Submit new feedback |
-
-**POST body:**
-```json
-{
-  "student_name": "Priya Sharma",
-  "message": "The new library hours are very convenient. Thank you!"
-}
-```
-
----
-
-## Example curl Commands
-
-```bash
-# ── Notices ────────────────────────────────────────────────
-
-# List all notices (page 1)
-curl http://localhost:8080/api/notices?page=1&limit=5
-
-# Post a new notice
-curl -X POST http://localhost:8080/api/notices \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Campus Wi-Fi Upgrade",
-    "message": "All campus buildings will have upgraded Wi-Fi starting next Monday. Expect brief outages during installation.",
-    "posted_by": "IT Department"
-  }'
-
-# ── Feedback ───────────────────────────────────────────────
-
-# List all feedback (page 1)
-curl http://localhost:8080/api/feedback?page=1&limit=5
-
-# Submit new feedback
-curl -X POST http://localhost:8080/api/feedback \
-  -H "Content-Type: application/json" \
-  -d '{
-    "student_name": "Rahul Verma",
-    "message": "The cafeteria food quality has improved significantly this semester."
-  }'
-
-# ── Validation error examples ──────────────────────────────
-
-# Missing title → 400
-curl -X POST http://localhost:8080/api/notices \
-  -H "Content-Type: application/json" \
-  -d '{"message": "no title", "posted_by": "admin"}'
-
-# Too few words in feedback → 400
-curl -X POST http://localhost:8080/api/feedback \
-  -H "Content-Type: application/json" \
-  -d '{"student_name": "Test", "message": "hi"}'
+docker compose -f docker-compose.notice.yml down -v --remove-orphans
+docker compose -f docker-compose.feedback.yml down -v --remove-orphans
+docker compose -f docker-compose.gateway.yml down -v --remove-orphans
 ```
 
 ---
 
 ## Project Structure
 
-```
+```text
 cloudmidpoint/
-├── frontend/              ← Static HTML/CSS/JS served by nginx
+├── frontend/              ← Static HTML/CSS/JS (Merged into Gateway container)
+├── gateway/               ← API Gateway + Nginx
 │   ├── Dockerfile
-│   ├── nginx.conf
-│   ├── index.html
-│   ├── styles.css
-│   └── app.js
-├── gateway/               ← API Gateway (Node.js + Express)
-│   ├── Dockerfile
-│   ├── package.json
+│   ├── start.sh           ← Boot script handling Node + Nginx
 │   └── src/
-│       └── index.js
 ├── notice-service/        ← Microservice 1 (Node.js + MySQL)
 │   ├── Dockerfile
-│   ├── package.json
+│   ├── start.sh           ← Boot script handling Node + MySQL
 │   └── src/
-│       ├── index.js
-│       ├── db.js
-│       └── routes/
-│           └── notices.js
 ├── feedback-service/      ← Microservice 2 (Python + Flask + PostgreSQL)
 │   ├── Dockerfile
-│   ├── requirements.txt
+│   ├── start.sh           ← Boot script handling Python + PostgreSQL
 │   └── app/
-│       ├── __init__.py
-│       ├── main.py
-│       ├── db.py
-│       ├── routes.py
-│       └── validators.py
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
+├── docker-compose.gateway.yml   ← Compose config for Gateway VM
+├── docker-compose.notice.yml    ← Compose config for Notice VM
+├── docker-compose.feedback.yml  ← Compose config for Feedback VM
 └── README.md
 ```
-
----
-
-## Environment Variables
-
-All configuration is driven by environment variables — see
-[`.env.example`](.env.example) for the full list. No credentials,
-hostnames, or ports are hardcoded in source code.
-
-| Variable | Used By | Description |
-|----------|---------|-------------|
-| `NOTICE_DB_HOST` | notice-service | MySQL hostname |
-| `NOTICE_DB_PORT` | notice-service | MySQL port |
-| `NOTICE_DB_USER` | notice-service, notice-db | MySQL user |
-| `NOTICE_DB_PASSWORD` | notice-service, notice-db | MySQL password |
-| `NOTICE_DB_NAME` | notice-service, notice-db | MySQL database name |
-| `NOTICE_DB_ROOT_PASSWORD` | notice-db | MySQL root password |
-| `FEEDBACK_DB_HOST` | feedback-service | PostgreSQL hostname |
-| `FEEDBACK_DB_PORT` | feedback-service | PostgreSQL port |
-| `FEEDBACK_DB_USER` | feedback-service, feedback-db | PostgreSQL user |
-| `FEEDBACK_DB_PASSWORD` | feedback-service, feedback-db | PostgreSQL password |
-| `FEEDBACK_DB_NAME` | feedback-service, feedback-db | PostgreSQL database name |
-| `GATEWAY_PORT` | gateway | Port the gateway listens on |
-| `NOTICE_SERVICE_PORT` | notice-service | Port the notice service listens on |
-| `FEEDBACK_SERVICE_PORT` | feedback-service | Port the feedback service listens on |
-| `NOTICE_SERVICE_URL` | gateway | Internal URL for routing to notice-service |
-| `FEEDBACK_SERVICE_URL` | gateway | Internal URL for routing to feedback-service |
-| `FRONTEND_PORT` | frontend | Port exposed to the browser |
-
----
-
-## License
-
-MIT
