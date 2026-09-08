@@ -39,46 +39,43 @@ app.get("/health", (_req, res) => {
 
 // --------------- Proxy: /api/notices → notice-service ---------------
 
-app.use(
-  "/api/notices",
-  createProxyMiddleware({
-    target: NOTICE_SERVICE_URL,
-    changeOrigin: true,
-    // Rewrite: /api/notices/foo → /notices/foo
-    pathRewrite: { "^/api/notices": "/notices" },
-    // Forward error responses instead of crashing
-    on: {
-      error: (err, _req, res) => {
-        console.error("[Gateway] notice-service proxy error:", err.message);
-        res.status(502).json({
-          error: "notice-service is unavailable",
-          details: err.message,
-        });
-      },
+const noticeProxy = createProxyMiddleware({
+  target: NOTICE_SERVICE_URL,
+  changeOrigin: true,
+  pathFilter: "/api/notices",
+  pathRewrite: { "^/api/notices": "/notices" },
+  on: {
+    error: (err, _req, res) => {
+      console.error("[Gateway] notice-service proxy error:", err.message);
+      res.status(502).json({
+        error: "notice-service is unavailable",
+        details: err.message,
+      });
     },
-  })
-);
+  },
+});
+
+app.use(noticeProxy);
 
 // --------------- Proxy: /api/feedback → feedback-service ---------------
 
-app.use(
-  "/api/feedback",
-  createProxyMiddleware({
-    target: FEEDBACK_SERVICE_URL,
-    changeOrigin: true,
-    // Rewrite: /api/feedback/foo → /feedback/foo
-    pathRewrite: { "^/api/feedback": "/feedback" },
-    on: {
-      error: (err, _req, res) => {
-        console.error("[Gateway] feedback-service proxy error:", err.message);
-        res.status(502).json({
-          error: "feedback-service is unavailable",
-          details: err.message,
-        });
-      },
+const feedbackProxy = createProxyMiddleware({
+  target: FEEDBACK_SERVICE_URL,
+  changeOrigin: true,
+  pathFilter: "/api/feedback",
+  pathRewrite: { "^/api/feedback": "/feedback" },
+  on: {
+    error: (err, _req, res) => {
+      console.error("[Gateway] feedback-service proxy error:", err.message);
+      res.status(502).json({
+        error: "feedback-service is unavailable",
+        details: err.message,
+      });
     },
-  })
-);
+  },
+});
+
+app.use(feedbackProxy);
 
 // --------------- Fallback ---------------
 
