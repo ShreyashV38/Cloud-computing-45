@@ -1,0 +1,22 @@
+services:
+  notice-service:
+    build:
+      context: ./notice-service
+      dockerfile: Dockerfile
+    container_name: notice-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: "127.0.0.1"
+      DB_PORT: "3306"
+      DB_USER: ${NOTICE_DB_USER}
+      DB_PASSWORD: ${NOTICE_DB_PASSWORD}
+      DB_NAME: ${NOTICE_DB_NAME}
+      PORT: "3001"
+    ports:
+      - "3001:3001"
+    networks:
+      - noticeboard-network
+
+networks:
+  noticeboard-network:
+    name: noticeboard-network

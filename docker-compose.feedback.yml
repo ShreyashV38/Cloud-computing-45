@@ -1,0 +1,22 @@
+services:
+  feedback-service:
+    build:
+      context: ./feedback-service
+      dockerfile: Dockerfile
+    container_name: feedback-service
+    restart: unless-stopped
+    environment:
+      DB_HOST: "127.0.0.1"
+      DB_PORT: "5432"
+      DB_USER: ${FEEDBACK_DB_USER}
+      DB_PASSWORD: ${FEEDBACK_DB_PASSWORD}
+      DB_NAME: ${FEEDBACK_DB_NAME}
+      PORT: "5000"
+    ports:
+      - "5000:5000"
+    networks:
+      - noticeboard-network
+
+networks:
+  noticeboard-network:
+    name: noticeboard-network
