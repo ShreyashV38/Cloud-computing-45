@@ -8,6 +8,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 
 # Setup Nginx
 RUN rm -rf /var/www/html/*
+RUN rm -f /etc/nginx/sites-enabled/default
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY frontend/index.html /var/www/html/
 COPY frontend/styles.css /var/www/html/
